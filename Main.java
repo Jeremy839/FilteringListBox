@@ -97,13 +97,15 @@ class FilterComboBox extends JComboBox {
             }
         };
 
-//        KeyStroke selectAllKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK);
-//        // Bind the KeyStroke to the Action
-//        textComponent.getInputMap(JComponent.WHEN_FOCUSED).put(selectAllKeyStroke, "selectAll");
-//        textComponent.getActionMap().put("selectAll", selectAllAction);
-
         // change notification
         addItemListener(new ItemChangeListener());
+        addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                // Not sure why we need this to work; appears to be broken as a result of the CustomComboBoxEditor we're using
+                textfield.setText(e.getItem().toString());
+            }
+        });
 
         addPopupMenuListener(new PopupMenuListener() {
             @Override
@@ -140,8 +142,12 @@ class FilterComboBox extends JComboBox {
         DefaultComboBoxModel model = (DefaultComboBoxModel) this.getModel();
         if (filterArray.size() > 0) {
             model.removeAllElements();
-            for (String s: filterArray)
-                model.addElement(s);
+            // https://stackoverflow.com/questions/13856471/how-i-stop-triggering-swing-jcombo-box-item-listener-while-adding-item-to-combo
+            for (int i = 0; i < filterArray.size(); i++) {
+                insertItemAt(filterArray.get(i), i);
+            }
+//            for (String s: filterArray)
+//                model.addElement(s);
 
             JTextField textfield = (JTextField) this.getEditor().getEditorComponent();
             textfield.setText(enteredText);
@@ -184,7 +190,6 @@ class FilterComboBox extends JComboBox {
 
     /**
      * We only want item change events fired from manual clicks
-     * TODO: this fires regardless of change state. e.g. A -> A will fire. fix that.
      */
     class ItemChangeListener implements ItemListener{
         @Override
